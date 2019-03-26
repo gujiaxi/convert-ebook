@@ -1,6 +1,5 @@
-#! /usr/bin/python
-# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # this program works in concert with the output from KindleUnpack
 

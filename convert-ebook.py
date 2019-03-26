@@ -1,5 +1,6 @@
-#! /usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
+
 import os
 import platform
 import shutil
@@ -10,8 +11,7 @@ import time
 import uuid
 from multiprocessing import cpu_count
 
-import threadpool
-
+import lib.threadpool as threadpool
 import lib.kindleunpack as kindleunpack
 from lib.mobi_header import MobiHeader
 from lib.mobi_sectioner import Sectionizer
