@@ -3,10 +3,14 @@
 使用Python3编写的电子书格式转换工具，将未加密的AZW3格式无损转换为EPUB及MOBI。
 
 ## 用法
-  
-  ```shell
-  ./convert-ebook.py foo.azw3
-  ```
+
+```shell
+./convert-ebook.py ./foo.azw3
+# Under the hood
+# ./lib/kindleunpack.py -i -s ./foo.azw3
+# ./lib/kindlegen/kindlegen-macos -dont_append_source ./mobi8/foo.epub
+```
+
 ## MOBI格式
 
 转换得到的MOBI文件实际上是包含KF7和KF8两种标准的混合格式（对应calibre下将输出格式设置为both的情况下转换得到的MOBI文件），采用混合格式的原因在于通过邮件发送电子书到Kindle时Amazon会拒绝接收纯的KF8格式，但是对于这种混合格式它却会自动提取出其中的KF8部分，唯一的缺点是在Kindle上不会显示封面（文件格式中确实包含书籍封面只是没有被解析）。
