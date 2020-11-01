@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+    echo "[ERROR] Illegal number of parameters"
+    exit 1
+fi
+
+input_file=$1
+tmp_dir=$(dirname $(mktemp -u))
+py_path=$(dirname $(realpath $0))
+
+if [[ ! -f $input_file ]]; then
+    echo "[ERROR] ${input_file}: File not found."
+    exit 2
+fi
+
+PYTHONPATH=$(dirname $0)
+if [[ $input_file == *.azw3 ]]; then
+    PYTHONPATH="$py_path" python3 -B -c "from bookconv import azw2mobi; azw2mobi('${input_file}', '${tmp_dir}')"
+elif [[ $input_file == *.epub ]]; then
+    PYTHONPATH="$py_path" python3 -B -c "from bookconv import epub2mobi; epub2mobi('${input_file}', '${tmp_dir}')"
+else
+    echo "[ERROR] Unsupported type of file, only azw3 and epub files are allowed."
+    exit 3
+fi
+
+echo "[SUCCESS] ${input_file} converted."
