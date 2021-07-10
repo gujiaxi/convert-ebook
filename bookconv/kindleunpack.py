@@ -971,7 +971,7 @@ def main(argv=unicode_argv()):
         sys.exit(2)
 
     apnxfile = None
-    epubver = '2'
+    epubver = '3'
     use_hd = False
 
     for o, a in opts:
