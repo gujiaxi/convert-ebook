@@ -21,14 +21,22 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+if getattr(sys, 'frozen', False):
+    # we are running in a bundle
+    bundle_dir = sys._MEIPASS
+else:
+    # we are running in a normal Python environment
+    bundle_dir = os.path.dirname(os.path.abspath(__file__))
+
+
 def kindle_gen_bin():
     system_name = platform.system()
     if system_name == "Windows":
-        return os.path.abspath("kindlegen/kindlegen.exe")
+        return os.path.abspath(os.path.join(bundle_dir, "kindlegen/kindlegen.exe"))
     elif system_name == "Linux":
-        return os.path.abspath("kindlegen/kindlegen-linux")
+        return os.path.abspath(os.path.join(bundle_dir, "kindlegen/kindlegen-linux"))
     elif system_name == "Darwin":
-        return os.path.abspath("kindlegen/kindlegen-macos")
+        return os.path.abspath(os.path.join(bundle_dir, "kindlegen/kindlegen-macos"))
     else:
         logger.error("Current OS is not supported.")
 
@@ -81,10 +89,9 @@ def convert_kf8_to_epub(file_path, tmp):
     if not os.path.exists(mobi8_dir):
         logger.error("Extraction process failed: {}".format(file_path))
         return
-
     file = find_suffix(mobi8_dir, ".epub")
     if file and os.path.exists(file):
-        logger.info("Epub file is successfully generated: {}".format(file))
+        logger.info("Epub file is successfully generated.")
     else:
         logger.error("Epub file cannot be generated.")
     return file
@@ -96,7 +103,7 @@ def convert_epub_to_mobi(file_path, tmp):
         return
     file = find_suffix(os.path.abspath(os.path.join(file_path, os.path.pardir)), ".mobi")
     if file and os.path.exists(file):
-        logger.info("Mobi file is successfully generated: {}".format(file))
+        logger.info("Mobi file is successfully generated.")
     else:
         logger.error("Mobi file cannot be generated.")
     return file
@@ -105,7 +112,6 @@ def convert_epub_to_mobi(file_path, tmp):
 def convert_azw3_to_mobi(file_path, tmp):
     if not check_file(file_path):
         return
-
     temp_dir_name = str(uuid.uuid1())
     temp_dir = os.path.join(tmp, temp_dir_name)
     if os.path.exists(temp_dir):
@@ -146,3 +152,4 @@ if __name__ == "__main__":
         convert_epub_to_mobi(file_path, tmp_dir)
     else:
         logger.error("File extension is not supported: {}".format(file_ext))
+    logger.info("Ebook is successfully converted.")
