@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ "$#" -ne 1 ]; then
     echo "[ERROR] Illegal number of parameters"
@@ -16,9 +16,9 @@ fi
 
 PYTHONPATH=$(dirname $0)
 if [[ $input_file == *.azw3 ]]; then
-    PYTHONPATH="$py_path" python3 -B -c "from bookconv import azw2mobi; azw2mobi('${input_file}', '${tmp_dir}')"
+    python3 main.py $input_file
 elif [[ $input_file == *.epub ]]; then
-    PYTHONPATH="$py_path" python3 -B -c "from bookconv import epub2mobi; epub2mobi('${input_file}', '${tmp_dir}')"
+    python3 main.py $input_file
 else
     echo "[ERROR] Unsupported type of file, only azw3 and epub files are allowed."
     exit 3

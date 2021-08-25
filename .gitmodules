@@ -1,0 +1,3 @@
+[submodule "KindleUnpack"]
+	path = KindleUnpack
+	url = git@github.com:kevinhendricks/KindleUnpack
