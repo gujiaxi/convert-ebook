@@ -60,7 +60,7 @@ def isKF8(file):
 
 
 def unpack_as_azw3(filepath, output_dir):
-    kindleunpack.print = lambda str: str
+    kindleunpack.print = lambda x, *args: x
     kindleunpack.main(["-i", "-s", "--epub_version=3", filepath, output_dir])
 
 
