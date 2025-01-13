@@ -2,11 +2,11 @@
 
 cwd_dir=$(dirname $(realpath $0))
 
-if [ "$#" -ne 1 ]; then
+if [ "$#" -lt 1 ]; then
     echo "[ERROR] Illegal number of parameters"
     exit 1
 fi
 
-python3 -B ${cwd_dir}/main.py $1
+python3 -B ${cwd_dir}/main.py "$@"
 
 echo "[SUCCESS] Ebook is successfully converted."
