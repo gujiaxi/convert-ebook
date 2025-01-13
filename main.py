@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import argparse
 import logging
 import os
 import platform
@@ -14,8 +15,6 @@ from KindleUnpack.lib import kindleunpack
 from KindleUnpack.lib.mobi_header import MobiHeader
 from KindleUnpack.lib.mobi_sectioner import Sectionizer
 
-
-tmp_dir = os.path.join(tempfile.gettempdir(), "convert_ebook")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -46,7 +45,7 @@ def run_bash(command):
 
 
 def file_copy(from_file, to_file):
-    logger.info("Copying {} to {}".format(from_file, to_file))
+    logger.info(f"Copying {from_file} to {to_file}")
     shutil.copy(from_file, to_file)
 
 
@@ -75,19 +74,19 @@ def find_suffix(dir, suffix):
 
 def check_file(file):
     if not os.path.exists(file):
-        logger.error("File doest not exist: {}".format(file))
+        logger.error(f"File doest not exist: {file}")
         return False
     if not isKF8(file):
-        logger.error("File is not in mobi8 format: {}".format(file))
+        logger.error(f"File is not in mobi8 format: {file}")
         return False
     return True
 
 
-def convert_kf8_to_epub(file_path, tmp):
-    unpack_as_azw3(file_path, tmp)
-    mobi8_dir = os.path.join(tmp, "mobi8")
+def convert_kf8_to_epub(file_path, output_dir):
+    unpack_as_azw3(file_path, output_dir)
+    mobi8_dir = os.path.join(output_dir, "mobi8")
     if not os.path.exists(mobi8_dir):
-        logger.error("Extraction process failed: {}".format(file_path))
+        logger.error(f"Extraction process failed: {file_path}")
         return
     file = find_suffix(mobi8_dir, ".epub")
     if file and os.path.exists(file):
@@ -97,7 +96,7 @@ def convert_kf8_to_epub(file_path, tmp):
     return file
 
 
-def convert_epub_to_mobi(file_path, tmp):
+def convert_epub_to_mobi(file_path):
     exit_code = run_bash("%s -dont_append_source \"%s\"" % (kindle_gen_bin(), file_path))
     if exit_code != 0:
         return
@@ -109,17 +108,15 @@ def convert_epub_to_mobi(file_path, tmp):
     return file
 
 
-def convert_azw3_to_mobi(file_path, tmp):
+def convert_azw3_to_mobi(file_path, force_to_mobi=False):
     if not check_file(file_path):
         return
-    temp_dir_name = str(uuid.uuid1())
-    temp_dir = os.path.join(tmp, temp_dir_name)
-    if os.path.exists(temp_dir):
-        shutil.rmtree(tmp_dir)
-    os.makedirs(temp_dir)
 
-    logger.info("Converting to epub: {}".format(file_path))
-    epub_file = convert_kf8_to_epub(file_path, temp_dir)
+    tmp_dir = os.path.join(tempfile.gettempdir(), f"convert_ebook_{uuid.uuid4().hex}")
+    os.makedirs(tmp_dir)
+
+    logger.info(f"Converting to epub: {file_path}")
+    epub_file = convert_kf8_to_epub(file_path, tmp_dir)
 
     is_azw3 = str(file_path).lower().endswith(".azw3")
 
@@ -129,27 +126,37 @@ def convert_azw3_to_mobi(file_path, tmp):
         file_copy(epub_file, file_path.replace(file_source_suffix, ".epub"))
 
     mobi_file = None
-    if epub_file and is_azw3:
-        logger.info("Converting to mobi: {}".format(epub_file))
-        mobi_file = convert_epub_to_mobi(epub_file, temp_dir)
-
+    if force_to_mobi and epub_file and is_azw3:
+        logger.info(f"Converting to mobi: {epub_file}")
+        mobi_file = convert_epub_to_mobi(epub_file)
     if mobi_file:
         file_copy(mobi_file, file_path.replace(file_source_suffix, ".mobi"))
+    # cleanup
+    if os.path.exists(tmp_dir):
+        shutil.rmtree(tmp_dir)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "file_path", type=str, help="Local ebook file (.azw3/.epub)."
+    )
+    parser.add_argument(
+        "--force_to_mobi", action="store_true", help="Convert AZW3 to epub, then to mobi."
+    )
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    if len(sys.argv) <= 1:
-        logger.error("The argument is not provided.")
+    args = parse_args()
+    if not os.path.exists(args.file_path):
+        logger.error(f"File not found: {args.file_path}")
         exit(1)
-    file_path = sys.argv[1]
-    if not os.path.exists(file_path):
-        logger.error("File does not exist: {}".format(file_path))
-        exit(1)
-    file_ext = os.path.splitext(file_path)[-1]
+    file_ext = os.path.splitext(args.file_path)[-1]
     if file_ext == ".azw3":
-        convert_azw3_to_mobi(file_path, tmp_dir)
+        convert_azw3_to_mobi(args.file_path, force_to_mobi=args.force_to_mobi)
     elif file_ext == ".epub":
-        convert_epub_to_mobi(file_path, tmp_dir)
+        convert_epub_to_mobi(args.file_path)
     else:
-        logger.error("File extension is not supported: {}".format(file_ext))
+        logger.error(f"File extension is not supported: {file_ext}")
     logger.info("Ebook is successfully converted.")
