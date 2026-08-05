@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-cwd_dir=$(dirname $(realpath $0))
+cwd_dir=$(dirname "$(realpath "$0")")
 
 if [ "$#" -lt 1 ]; then
-    echo "[ERROR] Illegal number of parameters"
+    echo "[ERROR] Illegal number of parameters" >&2
+    echo "Usage: $(basename "$0") <file.azw3|file.epub> [--force_to_mobi] [-v]" >&2
     exit 1
 fi
 
-python3 -B ${cwd_dir}/main.py "$@"
-
-echo "[SUCCESS] Ebook is successfully converted."
+if python3 -B "${cwd_dir}/main.py" "$@"; then
+    echo "[SUCCESS] Ebook is successfully converted."
+else
+    echo "[ERROR] Ebook conversion failed." >&2
+    exit 1
+fi
